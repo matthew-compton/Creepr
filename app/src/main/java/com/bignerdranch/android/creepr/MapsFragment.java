@@ -1,7 +1,10 @@
 package com.bignerdranch.android.creepr;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,7 +19,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapsFragment extends Fragment implements GoogleMap.OnInfoWindowClickListener {
+public class MapsFragment extends Fragment {
 
     private static final String TAG = MapsFragment.class.getSimpleName();
 
@@ -47,6 +50,10 @@ public class MapsFragment extends Fragment implements GoogleMap.OnInfoWindowClic
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_maps, menu);
+
+        SearchManager searchManager = (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
+        SearchView searchView = (SearchView) menu.findItem(R.id.menu_item_search).getActionView();
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
     }
 
     @Override
@@ -54,8 +61,6 @@ public class MapsFragment extends Fragment implements GoogleMap.OnInfoWindowClic
         switch (item.getItemId()) {
             case R.id.menu_item_search:
                 getActivity().onSearchRequested();
-                return true;
-            case R.id.menu_item_clear:
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -80,13 +85,15 @@ public class MapsFragment extends Fragment implements GoogleMap.OnInfoWindowClic
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
         );
 
-    }
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+            @Override
+            public void onInfoWindowClick(Marker marker) {
+                if (marker.isInfoWindowShown()) {
+                    marker.hideInfoWindow();
+                }
+            }
+        });
 
-    @Override
-    public void onInfoWindowClick(Marker marker) {
-        if (marker.isInfoWindowShown()) {
-            marker.hideInfoWindow();
-        }
     }
 
 }
