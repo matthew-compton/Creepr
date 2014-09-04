@@ -1,41 +1,27 @@
 package com.bignerdranch.android.creepr;
 
-import android.support.v4.app.FragmentActivity;
-import android.os.Bundle;
+import android.support.v4.app.Fragment;
 
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+public class MapsActivity extends SingleFragmentActivity {
 
-public class MapsActivity extends FragmentActivity {
-
-    private GoogleMap mMap;
+    private static final String TAG = MapsActivity.class.getSimpleName();
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_maps);
-        setUpMapIfNeeded();
+    protected Fragment createFragment() {
+        return new MapsFragment();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setUpMapIfNeeded();
-    }
-
-    private void setUpMapIfNeeded() {
-        if (mMap == null) {
-            mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
-            if (mMap != null) {
-                setUpMap();
-            }
-        }
-    }
-
-    private void setUpMap() {
-        mMap.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
-    }
-
+//    @Override
+//    protected void onNewIntent(Intent intent) {
+//        MapsFragment fragment = (MapsFragment) getSupportFragmentManager().findFragmentById(R.id.fragmentContainer);
+//
+//        if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+//            String query = intent.getStringExtra(SearchManager.QUERY);
+//            Log.i(TAG, "Received a new search query: " + query);
+//
+//            PreferenceManager.getDefaultSharedPreferences(this).edit().putString(FlickrFetchr.PREF_SEARCH_QUERY, query).commit();
+//        }
+//
+//        fragment.updateMap();
+//    }
 }
