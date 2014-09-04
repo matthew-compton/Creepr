@@ -1,10 +1,9 @@
 package com.bignerdranch.android.creepr;
 
-import android.app.SearchManager;
-import android.content.Context;
+import android.annotation.TargetApi;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.SearchView;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -33,7 +32,7 @@ public class MapsFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.activity_maps, parent, false);
+        View view = inflater.inflate(R.layout.fragment_maps, parent, false);
 
         setUpMapIfNeeded();
 
@@ -47,13 +46,31 @@ public class MapsFragment extends Fragment {
     }
 
     @Override
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         inflater.inflate(R.menu.menu_maps, menu);
 
-        SearchManager searchManager = (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
-        SearchView searchView = (SearchView) menu.findItem(R.id.menu_item_search).getActionView();
-        searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
+//        SearchManager manager = (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
+//
+//        MenuItem searchMenuItem = menu.findItem(R.id.menu_item_search);
+//        SearchView search = (SearchView) MenuItemCompat.getActionView(searchMenuItem);
+//        search.setSearchableInfo(manager.getSearchableInfo(getActivity().getComponentName()));
+//        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+//
+//            @Override
+//            public boolean onQueryTextSubmit(String s) {
+//                // TODO - go to chosen friend
+//                return false;
+//            }
+//
+//            @Override
+//            public boolean onQueryTextChange(String query) {
+//                // TODO - display possible friends
+//                return true;
+//            }
+//
+//        });
     }
 
     @Override
