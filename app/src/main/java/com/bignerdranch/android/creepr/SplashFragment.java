@@ -8,7 +8,7 @@ import android.view.ViewGroup;
 
 public class SplashFragment extends Fragment {
 
-    private static final String TAG = SelectionFragment.class.getSimpleName();
+    private static final String TAG = SplashFragment.class.getSimpleName();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {

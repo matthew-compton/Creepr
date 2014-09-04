@@ -79,6 +79,8 @@ public class MapsFragment extends Fragment {
             case R.id.menu_item_search:
                 getActivity().onSearchRequested();
                 return true;
+            case R.id.menu_item_settings:
+                return true;
             default:
                 return super.onOptionsItemSelected(item);
         }

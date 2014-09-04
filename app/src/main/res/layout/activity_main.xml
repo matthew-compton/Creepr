@@ -6,14 +6,20 @@
     android:layout_height="fill_parent">
 
     <fragment
-        android:name="com.bignerdranch.android.creepr.SelectionFragment"
-        android:id="@+id/selectionFragment"
+        android:name="com.bignerdranch.android.creepr.SplashFragment"
+        android:id="@+id/fragmentSplash"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
     <fragment
-        android:name="com.bignerdranch.android.creepr.SplashFragment"
-        android:id="@+id/splashFragment"
+        android:name="com.facebook.widget.UserSettingsFragment"
+        android:id="@+id/fragmentSettings"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+    <fragment
+        android:name="com.bignerdranch.android.creepr.MapsFragment"
+        android:id="@+id/fragmentMaps"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
