@@ -1,23 +1,33 @@
 package com.bignerdranch.android.creepr;
 
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.model.GraphUser;
+import com.google.android.gms.maps.CameraUpdate;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PolylineOptions;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.List;
 
 public class MapsFragment extends Fragment {
 
@@ -25,18 +35,18 @@ public class MapsFragment extends Fragment {
 
     private GoogleMap mMap;
 
-    private Session.StatusCallback statusCallback;
-    private Request.GraphUserCallback requestGraphUserCallback;
+    private Session.StatusCallback mStatusCallback;
+    private Request.GraphUserCallback mRequestGraphUserCallback;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
 
-        statusCallback = new SessionStatusCallback();
-        requestGraphUserCallback = new RequestGraphUserCallback();
+        mStatusCallback = new SessionStatusCallback();
+        mRequestGraphUserCallback = new RequestGraphUserCallback();
 
-        Session.openActiveSession(getActivity(), true, statusCallback);
+        Session.openActiveSession(getActivity(), true, mStatusCallback);
     }
 
     @Override
@@ -64,14 +74,6 @@ public class MapsFragment extends Fragment {
     }
 
     private void setUpMap() {
-
-        mMap.addMarker(new MarkerOptions()
-                        .title("Marker")
-                        .snippet("Information about this user.")
-                        .position(new LatLng(0, 0))
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher))
-        );
-
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
@@ -80,27 +82,75 @@ public class MapsFragment extends Fragment {
                 }
             }
         });
+    }
 
+    private void addUser(GraphUser user) {
+        String title = user.getName();
+        String hometownString = "";
+        try {
+            JSONObject jsonObject = new JSONObject(user.getProperty("hometown").toString());
+            hometownString = jsonObject.getString("name");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        String locationString = user.getLocation().getName();
+        LatLng hometown = getLocationFromAddress(hometownString);
+        LatLng location = getLocationFromAddress(locationString);
+
+        MarkerOptions markerHometown = new MarkerOptions()
+                .title(title)
+                .snippet("Hometown: " + hometownString)
+                .position(hometown);
+
+        MarkerOptions markerLocation = new MarkerOptions()
+                .title(title)
+                .snippet("Current Location: " + locationString)
+                .position(location);
+
+        PolylineOptions line = new PolylineOptions().add(hometown, location);
+
+        mMap.addMarker(markerHometown);
+        mMap.addPolyline(line);
+        mMap.addMarker(markerLocation);
+
+        CameraUpdate center = CameraUpdateFactory.newLatLng(location);
+        CameraUpdate zoom = CameraUpdateFactory.zoomTo(9);
+        mMap.moveCamera(center);
+        mMap.animateCamera(zoom);
+    }
+
+    public LatLng getLocationFromAddress(String strAddress) {
+        Geocoder coder = new Geocoder(getActivity());
+        List<Address> address = null;
+        try {
+            address = coder.getFromLocationName(strAddress, 5);
+            if (address == null) {
+                return new LatLng(0, 0);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Address location = address.get(0);
+        LatLng point = new LatLng(location.getLatitude(), location.getLongitude());
+        return point;
     }
 
     private class SessionStatusCallback implements Session.StatusCallback {
 
         @Override
         public void call(Session session, SessionState state, Exception exception) {
-
             if (session.isOpened()) {
-                Request.newMeRequest(session, requestGraphUserCallback).executeAsync();
+                Request.newMeRequest(session, mRequestGraphUserCallback).executeAsync();
             }
-
         }
     }
 
     private class RequestGraphUserCallback implements Request.GraphUserCallback {
-
         @Override
         public void onCompleted(GraphUser user, Response response) {
+            Log.i(TAG, response.toString());
             if (user != null) {
-                Toast.makeText(getActivity().getApplicationContext(), user.getName(), Toast.LENGTH_SHORT).show();
+                addUser(user);
             }
         }
     }
