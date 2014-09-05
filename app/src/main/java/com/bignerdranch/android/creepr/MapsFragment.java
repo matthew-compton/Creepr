@@ -1,16 +1,17 @@
 package com.bignerdranch.android.creepr;
 
-import android.annotation.TargetApi;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
+import com.facebook.Request;
+import com.facebook.Response;
+import com.facebook.Session;
+import com.facebook.SessionState;
+import com.facebook.model.GraphUser;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
@@ -24,10 +25,18 @@ public class MapsFragment extends Fragment {
 
     private GoogleMap mMap;
 
+    private Session.StatusCallback statusCallback;
+    private Request.GraphUserCallback requestGraphUserCallback;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
+        statusCallback = new SessionStatusCallback();
+        requestGraphUserCallback = new RequestGraphUserCallback();
+
+        Session.openActiveSession(getActivity(), true, statusCallback);
     }
 
     @Override
@@ -43,47 +52,6 @@ public class MapsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         setUpMapIfNeeded();
-    }
-
-    @Override
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        super.onCreateOptionsMenu(menu, inflater);
-        inflater.inflate(R.menu.menu_maps, menu);
-
-//        SearchManager manager = (SearchManager) getActivity().getSystemService(Context.SEARCH_SERVICE);
-//
-//        MenuItem searchMenuItem = menu.findItem(R.id.menu_item_search);
-//        SearchView search = (SearchView) MenuItemCompat.getActionView(searchMenuItem);
-//        search.setSearchableInfo(manager.getSearchableInfo(getActivity().getComponentName()));
-//        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-//
-//            @Override
-//            public boolean onQueryTextSubmit(String s) {
-//                // TODO - go to chosen friend
-//                return false;
-//            }
-//
-//            @Override
-//            public boolean onQueryTextChange(String query) {
-//                // TODO - display possible friends
-//                return true;
-//            }
-//
-//        });
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.menu_item_search:
-                getActivity().onSearchRequested();
-                return true;
-            case R.id.menu_item_settings:
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
-        }
     }
 
     private void setUpMapIfNeeded() {
@@ -113,6 +81,28 @@ public class MapsFragment extends Fragment {
             }
         });
 
+    }
+
+    private class SessionStatusCallback implements Session.StatusCallback {
+
+        @Override
+        public void call(Session session, SessionState state, Exception exception) {
+
+            if (session.isOpened()) {
+                Request.newMeRequest(session, requestGraphUserCallback).executeAsync();
+            }
+
+        }
+    }
+
+    private class RequestGraphUserCallback implements Request.GraphUserCallback {
+
+        @Override
+        public void onCompleted(GraphUser user, Response response) {
+            if (user != null) {
+                Toast.makeText(getActivity().getApplicationContext(), user.getName(), Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
 }
