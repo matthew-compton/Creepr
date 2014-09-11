@@ -34,6 +34,7 @@ public class MapsFragment extends Fragment {
     private static final String TAG = MapsFragment.class.getSimpleName();
 
     private GoogleMap mMap;
+    private CustomInfoWindowAdapter mCustomInfoWindowAdapter;
 
     private Session.StatusCallback mStatusCallback;
     private Request.GraphUserCallback mRequestGraphUserCallback;
@@ -82,6 +83,10 @@ public class MapsFragment extends Fragment {
                 }
             }
         });
+
+
+        mCustomInfoWindowAdapter = new CustomInfoWindowAdapter(getActivity().getLayoutInflater());
+        mMap.setInfoWindowAdapter(mCustomInfoWindowAdapter);
     }
 
     private void addUser(GraphUser user) {
@@ -99,12 +104,12 @@ public class MapsFragment extends Fragment {
 
         MarkerOptions markerHometown = new MarkerOptions()
                 .title(title)
-                .snippet("Hometown: " + hometownString)
+                .snippet("Hometown:\n" + hometownString)
                 .position(hometown);
 
         MarkerOptions markerLocation = new MarkerOptions()
                 .title(title)
-                .snippet("Current Location: " + locationString)
+                .snippet("Current Location:\n" + locationString)
                 .position(location);
 
         PolylineOptions line = new PolylineOptions().add(hometown, location);
