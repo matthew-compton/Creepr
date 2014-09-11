@@ -3,7 +3,6 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion "Google Inc.:Google APIs:19"
     buildToolsVersion "19.1.0"
-
     defaultConfig {
         applicationId "com.bignerdranch.android.creepr"
         minSdkVersion 15
