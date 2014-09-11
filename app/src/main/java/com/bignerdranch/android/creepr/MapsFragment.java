@@ -14,11 +14,11 @@ import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.model.GraphUser;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
@@ -38,6 +38,7 @@ public class MapsFragment extends Fragment {
 
     private Session.StatusCallback mStatusCallback;
     private Request.GraphUserCallback mRequestGraphUserCallback;
+    private Request.GraphUserListCallback mRequestGraphFriendsCallback;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -46,6 +47,7 @@ public class MapsFragment extends Fragment {
 
         mStatusCallback = new SessionStatusCallback();
         mRequestGraphUserCallback = new RequestGraphUserCallback();
+        mRequestGraphFriendsCallback = new RequestGraphFriendsCallback();
 
         Session.openActiveSession(getActivity(), true, mStatusCallback);
     }
@@ -84,7 +86,6 @@ public class MapsFragment extends Fragment {
             }
         });
 
-
         mCustomInfoWindowAdapter = new CustomInfoWindowAdapter(getActivity().getLayoutInflater());
         mMap.setInfoWindowAdapter(mCustomInfoWindowAdapter);
     }
@@ -118,10 +119,41 @@ public class MapsFragment extends Fragment {
         mMap.addPolyline(line);
         mMap.addMarker(markerLocation);
 
-        CameraUpdate center = CameraUpdateFactory.newLatLng(location);
-        CameraUpdate zoom = CameraUpdateFactory.zoomTo(9);
-        mMap.moveCamera(center);
-        mMap.animateCamera(zoom);
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder.include(hometown);
+        builder.include(location);
+        LatLngBounds bounds = builder.build();
+        mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100));
+    }
+
+    private void addFriend(GraphUser friend) {
+        String title = friend.getName();
+        String hometownString = "";
+        try {
+            JSONObject jsonObject = new JSONObject(friend.getProperty("hometown").toString());
+            hometownString = jsonObject.getString("name");
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        String locationString = friend.getLocation().getName();
+        LatLng hometown = getLocationFromAddress(hometownString);
+        LatLng location = getLocationFromAddress(locationString);
+
+        MarkerOptions markerHometown = new MarkerOptions()
+                .title(title)
+                .snippet("Hometown:\n" + hometownString)
+                .position(hometown);
+
+        MarkerOptions markerLocation = new MarkerOptions()
+                .title(title)
+                .snippet("Current Location:\n" + locationString)
+                .position(location);
+
+        PolylineOptions line = new PolylineOptions().add(hometown, location);
+
+        mMap.addMarker(markerHometown);
+        mMap.addPolyline(line);
+        mMap.addMarker(markerLocation);
     }
 
     public LatLng getLocationFromAddress(String strAddress) {
@@ -146,6 +178,7 @@ public class MapsFragment extends Fragment {
         public void call(Session session, SessionState state, Exception exception) {
             if (session.isOpened()) {
                 Request.newMeRequest(session, mRequestGraphUserCallback).executeAsync();
+                Request.newMyFriendsRequest(session, mRequestGraphFriendsCallback).executeAsync();
             }
         }
     }
@@ -156,6 +189,18 @@ public class MapsFragment extends Fragment {
             Log.i(TAG, response.toString());
             if (user != null) {
                 addUser(user);
+            }
+        }
+    }
+
+    private class RequestGraphFriendsCallback implements Request.GraphUserListCallback {
+        @Override
+        public void onCompleted(List<GraphUser> friends, Response response) {
+            Log.i(TAG, response.toString());
+            for (GraphUser friend : friends) {
+                if (friend != null) {
+                    addFriend(friend);
+                }
             }
         }
     }
