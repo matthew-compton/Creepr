@@ -19,7 +19,7 @@ public class MainFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
         LoginButton loginButton = (LoginButton) view.findViewById(R.id.login_button);
-        loginButton.setReadPermissions(Arrays.asList("user_hometown", "user_location","user_friends"));
+        loginButton.setReadPermissions(Arrays.asList("user_hometown", "user_location", "user_friends", "friends_hometown", "friends_location"));
 
         return view;
     }

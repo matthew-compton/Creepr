@@ -13,6 +13,7 @@ import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.SessionState;
+import com.facebook.model.GraphPlace;
 import com.facebook.model.GraphUser;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -94,12 +95,21 @@ public class MapsFragment extends Fragment {
         String title = user.getName();
         String hometownString = "";
         try {
-            JSONObject jsonObject = new JSONObject(user.getProperty("hometown").toString());
+            Object hometownObject = user.getProperty("hometown");
+            if (hometownObject == null) {
+                return;
+            }
+            JSONObject jsonObject = new JSONObject(hometownObject.toString());
             hometownString = jsonObject.getString("name");
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        String locationString = user.getLocation().getName();
+        GraphPlace locationObject = user.getLocation();
+        String locationString = locationObject.getName();
+        if (locationObject == null) {
+            return;
+        }
+
         LatLng hometown = getLocationFromAddress(hometownString);
         LatLng location = getLocationFromAddress(locationString);
 
@@ -130,12 +140,21 @@ public class MapsFragment extends Fragment {
         String title = friend.getName();
         String hometownString = "";
         try {
-            JSONObject jsonObject = new JSONObject(friend.getProperty("hometown").toString());
+            Object hometownObject = friend.getProperty("hometown");
+            if (hometownObject == null) {
+                return;
+            }
+            JSONObject jsonObject = new JSONObject(hometownObject.toString());
             hometownString = jsonObject.getString("name");
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        String locationString = friend.getLocation().getName();
+        GraphPlace locationObject = friend.getLocation();
+        String locationString = locationObject.getName();
+        if (locationObject == null) {
+            return;
+        }
+
         LatLng hometown = getLocationFromAddress(hometownString);
         LatLng location = getLocationFromAddress(locationString);
 
@@ -177,8 +196,14 @@ public class MapsFragment extends Fragment {
         @Override
         public void call(Session session, SessionState state, Exception exception) {
             if (session.isOpened()) {
-                Request.newMeRequest(session, mRequestGraphUserCallback).executeAsync();
-                Request.newMyFriendsRequest(session, mRequestGraphFriendsCallback).executeAsync();
+                Request request = Request.newMeRequest(session, mRequestGraphUserCallback);
+                request.executeAsync();
+
+                Request friendRequest = Request.newMyFriendsRequest(session, mRequestGraphFriendsCallback);
+                Bundle params = new Bundle();
+                params.putString("fields", "id,name,hometown,location");
+                friendRequest.setParameters(params);
+                friendRequest.executeAsync();
             }
         }
     }
